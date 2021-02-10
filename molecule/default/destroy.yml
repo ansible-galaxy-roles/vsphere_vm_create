@@ -1,0 +1,52 @@
+---
+- name: Destroy
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files: molecule.yml
+  no_log: false
+  tasks:
+    - name: Gather fact from molecule instance(s).
+      vmware_guest_info:
+        hostname: "{{ driver.hostname }}"
+        username: "{{ driver.username }}"
+        password: "{{ driver.password }}"
+        validate_certs: "{{ driver.validate_certs }}"
+        datacenter: "{{ driver.datacenter }}"
+        folder: "{{ driver.folder }}"
+        name: "{{ item.name }}"
+      register: server_fact_result
+      loop: "{{ platforms }}"
+      loop_control:
+        label: "{{ item.name }}"
+      ignore_errors: true
+
+    - name: Destroy molecule instance(s).
+      vmware_guest:
+        hostname: "{{ driver.hostname }}"
+        username: "{{ driver.username }}"
+        password: "{{ driver.password }}"
+        validate_certs: "{{ driver.validate_certs }}"
+        name: "{{ item.instance.hw_name }}"
+        delete_from_inventory: False
+        state: poweredoff
+      loop: "{{ server_fact_result.results }}"
+      loop_control:
+        label: "{{ item.instance.hw_name | default('vm not found') }}"
+      when:
+        - "'instance' in item"
+
+    - name: Destroy molecule instance(s).
+      vmware_guest:
+        hostname: "{{ driver.hostname }}"
+        username: "{{ driver.username }}"
+        password: "{{ driver.password }}"
+        validate_certs: "{{ driver.validate_certs }}"
+        name: "{{ item.instance.hw_name }}"
+        delete_from_inventory: False
+        state: absent
+      loop: "{{ server_fact_result.results }}"
+      loop_control:
+        label: "{{ item.instance.hw_name | default('vm not found') }}"
+      when:
+        - "'instance' in item"

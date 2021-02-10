@@ -1,0 +1,43 @@
+---
+# All "driver" and "platforms" parameters are mandantory. Please fill them.
+dependency:
+  name: shell
+  command: pip install -r molecule/requirements.txt
+lint: |
+  ansible-lint
+  yamllint .
+  flake8
+platforms:
+  - name: molecule_CentOS7
+    template: CentOS7-Packer-Template
+    vlan: VM Network
+driver:
+  name: delegated
+  hostname: "{{ lookup('env','VSPHERE_HOST') }}"
+  username: "{{ lookup('env','VSPHERE_USER') }}"
+  password: "{{ lookup('env','VSPHERE_PW') }}"
+  validate_certs: false
+  datacenter: dc1
+  datastore: SSD_BU
+  cluster: vcenter.vs.com
+  folder: /vm/Ansible/
+verifier:
+  name: ansible
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      win_inst3:
+        vm_name: "{{ platforms.0.name }}"
+        ansible_vmware_guest_path: "{{ ansible_vmware_guest_folder }}{{ vm_name }}"
+
+# vCenter Connection credentials
+ansible_vmware_host: "{{ driver.hostname }}"
+ansible_vmware_user: "{{ driver.username }}"
+ansible_vmware_password: "{{ driver.password }}"
+ansible_vmware_validate_certs: no
+
+# vCenter Connection VM Path
+ansible_vmware_guest_folder: "{{ driver.datacenter }}{{ driver.folder }}"
+ansible_vmware_tools_user: "{{ driver.vm_username }}"
+ansible_vmware_tools_password: "{{ driver.vm_password }}"

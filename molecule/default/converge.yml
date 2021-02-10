@@ -1,0 +1,14 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  vars_files: molecule.yml
+  roles:
+    - role: clarity-disk-config
+      vars:
+        ansible_connection: vmware_tools
+        ansible_shell_type: powershell
+    - role: mssql
+      vars:
+        ansible_shell_type: powershell
+        ansible_connection: vmware_tools

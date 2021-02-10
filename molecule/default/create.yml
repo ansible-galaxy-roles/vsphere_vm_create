@@ -1,0 +1,28 @@
+---
+- name: Create
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  no_log: false
+  vars_files: molecule.yml
+  tasks:
+    - name: Create molecule instance(s).
+      vmware_guest:
+        hostname: "{{ driver.hostname }}"
+        username: "{{ driver.username }}"
+        password: "{{ driver.password }}"
+        validate_certs: False
+        name: "{{ item.name }}"
+        template: "{{ item.template }}"
+        datacenter: "{{ driver.datacenter }}"
+        datastore: "{{ driver.datastore }}"
+        folder: "{{ driver.folder }}"
+        state: poweredon
+        wait_for_ip_address: yes
+      register: server
+      with_items: "{{ platforms }}"
+
+    - name: Wait 10 seconds
+      wait_for_connection:
+        delay: 10
+        timeout: 10
